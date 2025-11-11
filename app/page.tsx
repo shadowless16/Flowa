@@ -1,219 +1,245 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
+import { useState } from "react"
+import { Bell, CreditCard, Plus, Receipt, TrendingUp, Wallet } from "lucide-react"
+import useEmblaCarousel from "embla-carousel-react"
 import { BottomNav } from "@/components/bottom-nav"
-import { GradientCard } from "@/components/gradient-card"
-import { mockUser, mockTransactions } from "@/lib/mock-data"
-import { notificationService } from "@/lib/notification-service"
-import type { Notification } from "@/lib/types"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 
 export default function Home() {
-  const router = useRouter()
-  const [user, setUser] = useState(mockUser)
-  const [transactions, setTransactions] = useState(mockTransactions)
-  const [showPaymentSheet, setShowPaymentSheet] = useState(false)
-  const [notifications, setNotifications] = useState<Notification[]>([])
+  const [emblaRef, emblaApi] = useEmblaCarousel({ loop: false })
+  const [activeCard, setActiveCard] = useState(0)
 
-  useEffect(() => {
-    const unsubscribe = notificationService.subscribe((notification) => {
-      setNotifications((prev) => [notification, ...prev].slice(0, 3))
+  const cards = [
+    {
+      title: "Total Balance",
+      amount: 245680,
+      icon: CreditCard,
+      stats: [
+        { label: "Spending", value: 48200 },
+        { label: "Savings", value: 12450 },
+      ],
+    },
+    {
+      title: "Available Cash",
+      amount: 197480,
+      icon: Wallet,
+      stats: [
+        { label: "Income", value: 250000 },
+        { label: "Expenses", value: 52520 },
+      ],
+    },
+  ]
+
+  useState(() => {
+    if (!emblaApi) return
+    emblaApi.on("select", () => {
+      setActiveCard(emblaApi.selectedScrollSnap())
     })
-    return unsubscribe
-  }, [])
+  })
 
-  const monthlyGoal = 120000
-  const spent = user.totalSpent
-  const progress = (spent / monthlyGoal) * 100
+  const transactions = [
+    {
+      id: 1,
+      name: "KFC Restaurant",
+      category: "Food & Dining",
+      amount: 200,
+      saved: 850,
+      time: "2 hours ago",
+      icon: "🍗",
+      bgColor: "bg-red-50",
+    },
+    {
+      id: 2,
+      name: "Total Energies",
+      category: "Transportation",
+      amount: 8500,
+      saved: 0,
+      time: "Yesterday",
+      icon: "⛽",
+      bgColor: "bg-pink-50",
+    },
+    {
+      id: 3,
+      name: "Netflix Subscription",
+      category: "Entertainment",
+      amount: 4500,
+      saved: 0,
+      time: "2 days ago",
+      icon: "📺",
+      bgColor: "bg-purple-50",
+      badge: "Split with 3 Friends",
+    },
+    {
+      id: 4,
+      name: "ShopRite Groceries",
+      category: "Shopping",
+      amount: 15600,
+      saved: 0,
+      time: "3 days ago",
+      icon: "🛒",
+      bgColor: "bg-teal-50",
+    },
+  ]
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-gray-50 to-white pb-24 md:pb-0">
+    <main className="min-h-screen bg-gray-50 pb-24">
       {/* Header */}
-      <div className="bg-white border-b border-border p-4 flex justify-between items-center sticky top-0 z-30">
-        <h1 className="text-xl font-bold">Hi, {user.name.split(" ")[0]} 👋</h1>
-        <button className="text-2xl">🔔</button>
+      <div className="bg-white p-4 flex justify-between items-center">
+        <div>
+          <h1 className="text-lg font-semibold text-gray-900">Hi, Ak David 👋</h1>
+          <p className="text-xs text-gray-500">Welcome back to Payverse</p>
+        </div>
+        <div className="flex items-center gap-3">
+          <button className="relative">
+            <Bell className="w-5 h-5 text-purple-600" />
+          </button>
+          <Avatar className="w-9 h-9">
+            <AvatarImage src="/placeholder-user.jpg" />
+            <AvatarFallback className="bg-purple-100 text-purple-600 text-xs">AD</AvatarFallback>
+          </Avatar>
+        </div>
       </div>
 
-      {/* Main Balance Card */}
-      <div className="px-4 py-6">
-        <GradientCard variant="primary">
-          <div className="flex justify-between items-start mb-12">
-            <div>
-              <p className="text-white/80 text-sm mb-2">Total Balance</p>
-              <h2 className="text-4xl font-bold">₦{user.totalSaved.toLocaleString()}</h2>
-            </div>
-            <div className="bg-white/20 backdrop-blur-sm rounded-lg p-2 text-2xl">💳</div>
+      {/* Balance Card Carousel */}
+      <div className="pt-6 pb-4">
+        <div className="overflow-hidden" ref={emblaRef}>
+          <div className="flex">
+            {cards.map((card, index) => {
+              const Icon = card.icon
+              return (
+                <div key={index} className="flex-[0_0_100%] min-w-0 px-4">
+                  <div className="gradient-primary rounded-3xl p-6 text-white shadow-xl">
+                    <div className="flex justify-between items-start mb-8">
+                      <div>
+                        <p className="text-white/80 text-xs mb-1">{card.title}</p>
+                        <h2 className="text-4xl font-bold">₦{card.amount.toLocaleString()}</h2>
+                      </div>
+                      <div className="bg-white/20 backdrop-blur-sm rounded-xl p-2.5">
+                        <Icon className="w-6 h-6 text-white" />
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-6">
+                      {card.stats.map((stat, i) => (
+                        <div key={i}>
+                          <p className="text-white/70 text-xs mb-1">{stat.label}</p>
+                          <p className="text-xl font-bold">₦{stat.value.toLocaleString()}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )
+            })}
           </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <p className="text-white/70 text-xs mb-1">Spending</p>
-              <p className="text-2xl font-bold">₦{user.totalSpent.toLocaleString()}</p>
-            </div>
-            <div>
-              <p className="text-white/70 text-xs mb-1">Savings Rate</p>
-              <p className="text-2xl font-bold">{user.successRate}%</p>
-            </div>
-          </div>
-        </GradientCard>
-      </div>
-
-      {/* Monthly Goal Progress */}
-      <div className="px-4 py-4">
-        <h3 className="text-sm font-semibold mb-3">Monthly Savings Goal</h3>
-        <div className="bg-white rounded-2xl p-4 shadow-sm">
-          <div className="flex justify-between items-center mb-2">
-            <span className="text-sm text-muted-foreground">
-              ₦{spent.toLocaleString()} of ₦{monthlyGoal.toLocaleString()}
-            </span>
-            <span className="text-sm font-semibold text-primary">{Math.round(progress)}%</span>
-          </div>
-          <div className="w-full h-2 bg-muted rounded-full overflow-hidden">
+        </div>
+        {/* Card Indicators */}
+        <div className="flex justify-center gap-1.5 mt-3">
+          {cards.map((_, index) => (
             <div
-              className="h-full bg-gradient-to-r from-primary to-secondary transition-all"
-              style={{ width: `${Math.min(progress, 100)}%` }}
+              key={index}
+              className={`w-1.5 h-1.5 rounded-full transition-colors ${
+                activeCard === index ? "bg-purple-600" : "bg-gray-300"
+              }`}
             />
+          ))}
+        </div>
+      </div>
+
+      {/* Monthly Goal */}
+      <div className="px-4 py-4">
+        <div className="bg-white rounded-2xl p-4 shadow-sm">
+          <div className="flex justify-between items-center mb-3">
+            <div>
+              <p className="text-xs text-gray-600">Monthly Savings Goal</p>
+              <p className="text-xs text-gray-500 mt-0.5">₦15,450 of ₦20,000</p>
+            </div>
+            <div className="text-right">
+              <p className="text-lg font-bold text-orange-500">62%</p>
+            </div>
           </div>
-          <p className="text-xs text-muted-foreground mt-2">
-            ₦{(monthlyGoal - spent).toLocaleString()} more to reach your goal
-          </p>
+          <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
+            <div className="h-full bg-gradient-to-r from-orange-400 to-orange-500 rounded-full" style={{ width: "62%" }} />
+          </div>
+          <div className="flex items-center gap-1 mt-2">
+            <span className="text-xs text-gray-600">💰</span>
+            <p className="text-xs text-gray-600">₦4,550 more to reach your goal</p>
+          </div>
         </div>
       </div>
 
       {/* Quick Actions */}
       <div className="px-4 py-4">
-        <h3 className="text-sm font-semibold mb-3">Quick Actions</h3>
+        <h3 className="text-sm font-semibold mb-3 text-gray-900">Quick Actions</h3>
         <div className="grid grid-cols-3 gap-3">
-          <button
-            onClick={() => setShowPaymentSheet(true)}
-            className="bg-white rounded-2xl p-4 shadow-sm flex flex-col items-center gap-2 active:bg-gray-50"
-          >
-            <span className="text-2xl">➕</span>
-            <span className="text-xs text-center">Add Payment</span>
+          <button className="bg-white rounded-2xl p-4 shadow-sm flex flex-col items-center gap-2 active:scale-95 transition-transform">
+            <div className="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center">
+              <Plus className="w-5 h-5 text-purple-600" />
+            </div>
+            <span className="text-xs font-medium text-gray-700">Add Payment</span>
           </button>
-          <button className="bg-white rounded-2xl p-4 shadow-sm flex flex-col items-center gap-2 active:bg-gray-50">
-            <span className="text-2xl">🔄</span>
-            <span className="text-xs text-center">Split Bill</span>
+          <button className="bg-white rounded-2xl p-4 shadow-sm flex flex-col items-center gap-2 active:scale-95 transition-transform">
+            <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
+              <Receipt className="w-5 h-5 text-blue-600" />
+            </div>
+            <span className="text-xs font-medium text-gray-700">Split Bill</span>
           </button>
-          <button className="bg-white rounded-2xl p-4 shadow-sm flex flex-col items-center gap-2 active:bg-gray-50">
-            <span className="text-2xl">📊</span>
-            <span className="text-xs text-center">Insights</span>
+          <button className="bg-white rounded-2xl p-4 shadow-sm flex flex-col items-center gap-2 active:scale-95 transition-transform">
+            <div className="w-12 h-12 bg-teal-100 rounded-xl flex items-center justify-center">
+              <TrendingUp className="w-5 h-5 text-teal-600" />
+            </div>
+            <span className="text-xs font-medium text-gray-700">Insights</span>
           </button>
         </div>
       </div>
 
-      {/* Recent Transactions */}
+      {/* Recent Moments */}
       <div className="px-4 py-4">
         <div className="flex justify-between items-center mb-3">
-          <h3 className="text-sm font-semibold">Recent Moments</h3>
-          <button className="text-xs text-primary hover:underline">View All</button>
+          <h3 className="text-sm font-semibold text-gray-900">Recent Moments</h3>
+          <button className="text-xs text-purple-600 font-medium">View All</button>
         </div>
         <div className="space-y-3">
           {transactions.map((txn) => (
             <div key={txn.id} className="bg-white rounded-2xl p-4 shadow-sm">
-              <div className="flex justify-between items-start mb-2">
-                <div>
-                  <p className="font-semibold text-sm">{txn.description}</p>
-                  <p className="text-xs text-muted-foreground">{txn.category}</p>
+              <div className="flex gap-3">
+                <div className={`w-10 h-10 ${txn.bgColor} rounded-xl flex items-center justify-center flex-shrink-0`}>
+                  <span className="text-lg">{txn.icon}</span>
                 </div>
-                <p className="font-bold text-sm">₦{txn.amount.toLocaleString()}</p>
+                <div className="flex-1 min-w-0">
+                  <div className="flex justify-between items-start mb-1">
+                    <div className="flex-1">
+                      <p className="font-semibold text-sm text-gray-900">{txn.name}</p>
+                      <p className="text-xs text-gray-500">{txn.category}</p>
+                    </div>
+                    <p className="font-bold text-sm text-gray-900">₦{txn.amount.toLocaleString()}</p>
+                  </div>
+                  {txn.badge ? (
+                    <div className="flex items-center gap-2 mt-2">
+                      <span className="text-xs text-purple-600 bg-purple-50 px-2 py-1 rounded-lg">{txn.badge}</span>
+                      <span className="text-xs text-gray-400">{txn.time}</span>
+                    </div>
+                  ) : txn.saved > 0 ? (
+                    <div className="flex items-center gap-2 mt-2">
+                      <span className="text-xs text-green-600 bg-green-50 px-2 py-1 rounded-lg">+₦{txn.saved} saved</span>
+                      <span className="text-xs text-gray-400">{txn.time}</span>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-2 mt-2">
+                      <span className="text-xs text-gray-400">{txn.time}</span>
+                    </div>
+                  )}
+                </div>
               </div>
-              <p className="text-xs text-green-600 bg-green-50 rounded-lg p-2">✓ ₦{txn.saved} saved</p>
             </div>
           ))}
         </div>
       </div>
 
-      {/* Payment Sheet Modal */}
-      {showPaymentSheet && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-end md:items-center md:justify-center">
-          <div className="bg-white rounded-t-3xl md:rounded-3xl w-full md:w-96 p-6 animate-in slide-in-from-bottom-96 md:slide-in-from-bottom-0">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-xl font-bold">Add Payment</h2>
-              <button onClick={() => setShowPaymentSheet(false)} className="text-2xl">
-                ✕
-              </button>
-            </div>
-
-            <form
-              onSubmit={(e) => {
-                e.preventDefault()
-                const formData = new FormData(e.currentTarget)
-                const amount = Number.parseInt(formData.get("amount") as string)
-                const category = formData.get("category") as string
-                const description = formData.get("description") as string
-
-                const newTransaction = {
-                  id: Date.now().toString(),
-                  amount,
-                  category: category as any,
-                  description,
-                  timestamp: new Date(),
-                  saved: Math.floor(amount * 0.1),
-                }
-
-                setTransactions([newTransaction, ...transactions])
-                notificationService.simulateTransaction(amount, category, description)
-                setShowPaymentSheet(false)
-              }}
-              className="space-y-4"
-            >
-              <div>
-                <label className="block text-sm font-medium mb-2">Amount (₦)</label>
-                <input
-                  type="number"
-                  name="amount"
-                  required
-                  placeholder="0"
-                  className="w-full border border-border rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-primary"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium mb-2">Category</label>
-                <select
-                  name="category"
-                  required
-                  className="w-full border border-border rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-primary"
-                >
-                  <option value="">Select category</option>
-                  <option value="bills">Bills</option>
-                  <option value="entertainment">Entertainment</option>
-                  <option value="shopping">Shopping</option>
-                  <option value="food">Food</option>
-                  <option value="transport">Transport</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium mb-2">Description</label>
-                <input
-                  type="text"
-                  name="description"
-                  required
-                  placeholder="What did you spend on?"
-                  className="w-full border border-border rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-primary"
-                />
-              </div>
-
-              <div className="flex gap-2 pt-4">
-                <button
-                  type="button"
-                  onClick={() => setShowPaymentSheet(false)}
-                  className="flex-1 py-3 border border-border rounded-lg font-semibold hover:bg-gray-50"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="flex-1 py-3 bg-primary text-white rounded-lg font-semibold hover:bg-primary/90"
-                >
-                  Add Payment
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+      {/* Floating Action Button */}
+      <button className="fixed bottom-24 right-6 w-14 h-14 bg-purple-600 rounded-full shadow-lg flex items-center justify-center text-white z-40 active:scale-95 transition-transform">
+        <Plus className="w-6 h-6" />
+      </button>
 
       <BottomNav />
     </main>

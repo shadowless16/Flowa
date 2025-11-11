@@ -1,118 +1,195 @@
 "use client"
 
 import Link from "next/link"
+import { ArrowLeft, MoreVertical, TrendingUp, TrendingDown } from "lucide-react"
 import { BottomNav } from "@/components/bottom-nav"
-import { spendingBreakdown } from "@/lib/mock-data"
+import { Line, Doughnut } from "react-chartjs-2"
+import { Chart as ChartJS, ArcElement, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend } from "chart.js"
+
+ChartJS.register(ArcElement, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend)
 
 export default function InsightsPage() {
-  const weeklyData = [
-    { week: "Week 1", amount: 35000 },
-    { week: "Week 2", amount: 42000 },
-    { week: "Week 3", amount: 38000 },
-    { week: "Week 4", amount: 45000 },
-    { week: "Week 5", amount: 52000 },
+  const savingsData = [
+    { name: "Week 1", value: 8500 },
+    { name: "Week 2", value: 7200 },
+    { name: "Week 3", value: 9100 },
+    { name: "Week 4", value: 8800 },
+    { name: "Week 5", value: 9500 },
+    { name: "Week 6", value: 10200 },
   ]
 
-  const maxAmount = Math.max(...weeklyData.map((d) => d.amount))
+  const spendingBreakdown = [
+    { name: "Food", value: 40.2, color: "#a855f7" },
+    { name: "Shopping", value: 20.4, color: "#ef4444" },
+    { name: "Entertainment", value: 15.7, color: "#f59e0b" },
+    { name: "Transport", value: 11.2, color: "#10b981" },
+    { name: "Bills", value: 12.5, color: "#06b6d4" },
+  ]
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-gray-50 to-white pb-24">
+    <main className="min-h-screen bg-gray-50 pb-24">
       {/* Header */}
-      <div className="bg-white border-b border-border p-4 flex justify-between items-center sticky top-0 z-30">
-        <Link href="/" className="text-2xl">
-          ←
+      <div className="bg-white p-4 flex justify-between items-center">
+        <Link href="/">
+          <ArrowLeft className="w-6 h-6 text-gray-700" />
         </Link>
-        <h1 className="text-xl font-bold">Spending Insights 📊</h1>
-        <button className="text-2xl">•••</button>
+        <h1 className="text-base font-semibold text-gray-900 flex items-center gap-2">
+          Spending Insights 📊
+        </h1>
+        <button>
+          <MoreVertical className="w-6 h-6 text-gray-700" />
+        </button>
       </div>
 
       {/* This Week Card */}
-      <div className="px-4 py-6">
+      <div className="px-4 pt-6 pb-4">
         <div className="bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-3xl p-6 shadow-lg">
-          <div className="flex justify-between items-start mb-8">
-            <div>
-              <p className="text-white/80 text-sm mb-2">This Week</p>
-              <h2 className="text-4xl font-bold">₦14,200</h2>
+          <div className="flex justify-between items-start mb-2">
+            <div className="flex items-center gap-2">
+              <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
+                <span className="text-xl">💰</span>
+              </div>
+              <span className="text-sm text-white/90">This Week</span>
             </div>
-            <span className="text-3xl">📊</span>
           </div>
-          <div>
-            <p className="text-sm text-white/70 mb-2">Total spent</p>
-            <p className="text-xs">Top category: Shopping</p>
+          <h2 className="text-4xl font-bold mb-1">₦14,200</h2>
+          <p className="text-sm text-white/80">Total spent</p>
+        </div>
+      </div>
+
+      {/* Stats Row */}
+      <div className="px-4 pb-4">
+        <div className="grid grid-cols-2 gap-3">
+          <div className="bg-white rounded-2xl p-4 shadow-sm">
+            <div className="flex items-center gap-2 mb-2">
+              <div className="w-8 h-8 bg-orange-100 rounded-lg flex items-center justify-center">
+                <span className="text-sm">🍕</span>
+              </div>
+              <span className="text-xs text-gray-600">Top Category</span>
+            </div>
+            <p className="text-xl font-bold text-gray-900">Food</p>
+            <p className="text-xs text-gray-500">₦5,800</p>
+          </div>
+          <div className="bg-white rounded-2xl p-4 shadow-sm">
+            <div className="flex items-center gap-2 mb-2">
+              <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
+                <TrendingUp className="w-4 h-4 text-purple-600" />
+              </div>
+              <span className="text-xs text-gray-600">Savings Up</span>
+            </div>
+            <p className="text-xl font-bold text-green-600">+8%</p>
+            <p className="text-xs text-gray-500">vs Last Week</p>
           </div>
         </div>
       </div>
 
       {/* Spending Breakdown */}
-      <div className="px-4 py-6">
-        <h3 className="text-sm font-semibold mb-4">Spending Breakdown</h3>
+      <div className="px-4 py-4">
+        <h3 className="text-sm font-semibold mb-3 text-gray-900">Spending Breakdown</h3>
         <div className="bg-white rounded-2xl p-6 shadow-sm">
-          {/* Pie Chart Visualization */}
-          <div className="flex items-center justify-center mb-6">
-            <div
-              className="relative w-40 h-40 rounded-full"
-              style={{
-                background: `conic-gradient(
-                #06b6d4 0% ${spendingBreakdown[0].value}%,
-                #a855f7 ${spendingBreakdown[0].value}% ${spendingBreakdown[0].value + spendingBreakdown[1].value}%,
-                #f59e0b ${spendingBreakdown[0].value + spendingBreakdown[1].value}% ${spendingBreakdown[0].value + spendingBreakdown[1].value + spendingBreakdown[2].value}%,
-                #ef4444 ${spendingBreakdown[0].value + spendingBreakdown[1].value + spendingBreakdown[2].value}% ${spendingBreakdown[0].value + spendingBreakdown[1].value + spendingBreakdown[2].value + spendingBreakdown[3].value}%,
-                #10b981 ${spendingBreakdown[0].value + spendingBreakdown[1].value + spendingBreakdown[2].value + spendingBreakdown[3].value}% 100%
-              )`,
+          <div className="w-64 h-64 mx-auto">
+            <Doughnut
+              data={{
+                labels: ["Food", "Shopping", "Entertainment", "Transport", "Bills"],
+                datasets: [
+                  {
+                    data: [40.2, 20.4, 15.7, 11.2, 12.5],
+                    backgroundColor: ["#a855f7", "#ef4444", "#f59e0b", "#10b981", "#06b6d4"],
+                    borderWidth: 0,
+                  },
+                ],
               }}
-            >
-              <div className="absolute inset-4 bg-white rounded-full flex items-center justify-center">
-                <span className="text-2xl">💳</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Legend */}
-          <div className="space-y-2">
-            {spendingBreakdown.map((item) => (
-              <div key={item.name} className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 rounded" style={{ backgroundColor: item.color }} />
-                  <span className="text-sm">{item.name}</span>
-                </div>
-                <span className="text-sm font-semibold">{item.value}%</span>
-              </div>
-            ))}
+              options={{
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                  legend: {
+                    position: "bottom",
+                    labels: {
+                      padding: 15,
+                      font: { size: 11 },
+                      generateLabels: (chart) => {
+                        const data = chart.data
+                        return data.labels?.map((label, i) => ({
+                          text: `${label} ${data.datasets[0].data[i]}%`,
+                          fillStyle: data.datasets[0].backgroundColor?.[i] as string,
+                          hidden: false,
+                          index: i,
+                        })) || []
+                      },
+                    },
+                  },
+                },
+              }}
+            />
           </div>
         </div>
       </div>
 
-      {/* Savings Over Time Chart */}
-      <div className="px-4 py-6">
-        <h3 className="text-sm font-semibold mb-4">Savings Over Time</h3>
+      {/* Savings Over Time */}
+      <div className="px-4 py-4">
+        <h3 className="text-sm font-semibold mb-3 text-gray-900">Savings Over Time</h3>
         <div className="bg-white rounded-2xl p-6 shadow-sm">
-          {/* Bar Chart */}
-          <div className="flex items-end justify-between h-40 gap-2 mb-6">
-            {weeklyData.map((data) => (
-              <div key={data.week} className="flex-1 flex flex-col items-center gap-2">
-                <div
-                  className="w-full bg-gradient-to-t from-purple-400 to-purple-500 rounded-t-lg"
-                  style={{ height: `${(data.amount / maxAmount) * 120}px` }}
-                />
-                <span className="text-xs text-muted-foreground text-center">{data.week}</span>
-              </div>
-            ))}
+          <div className="h-52">
+            <Line
+              data={{
+                labels: savingsData.map((d) => d.name),
+                datasets: [
+                  {
+                    data: savingsData.map((d) => d.value),
+                    borderColor: "#a855f7",
+                    backgroundColor: "rgba(168, 85, 247, 0.1)",
+                    tension: 0.4,
+                    fill: true,
+                    pointRadius: 4,
+                    pointBackgroundColor: "#a855f7",
+                  },
+                ],
+              }}
+              options={{
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                  legend: { display: false },
+                },
+                scales: {
+                  y: {
+                    beginAtZero: true,
+                    grid: { color: "#f0f0f0" },
+                    ticks: { font: { size: 10 }, color: "#9ca3af" },
+                  },
+                  x: {
+                    grid: { display: false },
+                    ticks: { font: { size: 10 }, color: "#9ca3af" },
+                  },
+                },
+              }}
+            />
           </div>
-          <p className="text-xs text-center text-muted-foreground">Weekly savings trend</p>
         </div>
       </div>
 
       {/* Quick Stats */}
-      <div className="px-4 py-6">
-        <h3 className="text-sm font-semibold mb-3">Quick Stats</h3>
-        <div className="grid grid-cols-2 gap-3">
-          <div className="bg-white rounded-2xl p-4 shadow-sm text-center">
-            <p className="text-2xl font-bold text-primary">₦14,200</p>
-            <p className="text-xs text-muted-foreground mt-1">Spent This Week</p>
+      <div className="px-4 py-4">
+        <h3 className="text-sm font-semibold mb-3 text-gray-900">Quick Stats</h3>
+        <div className="space-y-3">
+          <div className="bg-white rounded-2xl p-4 shadow-sm flex justify-between items-center">
+            <div>
+              <p className="text-xs text-gray-500">Average Daily Spend</p>
+              <p className="text-xl font-bold text-gray-900">₦2,028</p>
+            </div>
+            <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center">
+              <TrendingDown className="w-5 h-5 text-blue-600" />
+            </div>
           </div>
-          <div className="bg-white rounded-2xl p-4 shadow-sm text-center">
-            <p className="text-2xl font-bold text-green-600">₦1,420</p>
-            <p className="text-xs text-muted-foreground mt-1">Saved This Week</p>
+          <div className="bg-white rounded-2xl p-4 shadow-sm flex justify-between items-center">
+            <div>
+              <p className="text-xs text-gray-500">Most Expensive Day</p>
+              <p className="text-xl font-bold text-gray-900">Thursday</p>
+            </div>
+            <div className="w-10 h-10 bg-red-100 rounded-xl flex items-center justify-center">
+              <span className="text-lg">📅</span>
+            </div>
           </div>
         </div>
       </div>
