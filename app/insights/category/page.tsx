@@ -1,12 +1,12 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useState, Suspense } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
 import { ArrowLeft } from "lucide-react"
 import { Bar } from "react-chartjs-2"
 
-export default function CategoryDetailPage() {
+function CategoryDetailContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const category = searchParams.get("name")
@@ -130,5 +130,13 @@ export default function CategoryDetailPage() {
         </div>
       </div>
     </main>
+  )
+}
+
+export default function CategoryDetailPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-gray-50 flex items-center justify-center"><p>Loading...</p></div>}>
+      <CategoryDetailContent />
+    </Suspense>
   )
 }
