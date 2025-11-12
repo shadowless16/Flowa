@@ -1,0 +1,30 @@
+import { NextResponse } from "next/server"
+import { auth } from "@/auth"
+import clientPromise from "@/lib/db/mongodb"
+
+export async function POST(req: Request) {
+  try {
+    const session = await auth()
+    if (!session?.user?.email) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
+
+    const { accountId, bankName } = await req.json()
+    console.log("Updating user:", session.user.email, "with account ID:", accountId)
+
+    const client = await clientPromise
+    const db = client.db("payverse")
+
+    const result = await db.collection("users").updateOne(
+      { email: session.user.email },
+      { $set: { monoAccountId: accountId, bankName: bankName || "ALAT by Wema", bankConnected: true, updatedAt: new Date() } }
+    )
+    
+    console.log("Update result:", result.modifiedCount, "documents modified")
+
+    return NextResponse.json({ message: "Bank account updated successfully", accountId })
+  } catch (error) {
+    console.error("Update error:", error)
+    return NextResponse.json({ error: "Failed to update bank account" }, { status: 500 })
+  }
+}

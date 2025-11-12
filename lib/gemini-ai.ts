@@ -6,7 +6,7 @@ export async function generateSmartReaction(amount: number, category: string, de
   }
 
   try {
-    const prompt = `You are Payverse, a friendly financial AI assistant. Generate a short, encouraging smart reaction (1 sentence max) for this transaction:
+    const prompt = `You are Flowa, a friendly financial AI assistant. Generate a short, encouraging smart reaction (1 sentence max) for this transaction:
     - Amount: ₦${amount}
     - Category: ${category}
     - Description: ${description}
