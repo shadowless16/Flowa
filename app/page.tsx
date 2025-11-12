@@ -30,6 +30,19 @@ export default function Home() {
   useEffect(() => {
     if (status === "unauthenticated") {
       router.push("/auth/signin")
+      return
+    }
+    
+    if (status === "authenticated") {
+      fetch("/api/user/onboarding-status")
+        .then(r => r.json())
+        .then(({ onboardingComplete, bankConnected }) => {
+          if (!onboardingComplete) {
+            router.push("/onboarding")
+          } else if (!bankConnected) {
+            router.push("/connect-bank")
+          }
+        })
     }
   }, [status, router])
 

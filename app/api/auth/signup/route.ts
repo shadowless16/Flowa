@@ -21,6 +21,7 @@ export async function POST(req: Request) {
       email,
       phone,
       password: hashedPassword,
+      onboardingComplete: false,
       createdAt: new Date(),
     })
 

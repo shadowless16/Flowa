@@ -36,45 +36,38 @@ export default function SignInPage() {
   }
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-purple-900 via-purple-700 to-pink-600 flex items-center justify-center p-4">
+    <main className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
-        <div className="backdrop-blur-xl bg-white/10 rounded-3xl p-8 shadow-2xl border border-white/20">
+        <div className="bg-white rounded-3xl p-8 shadow-sm">
           <div className="text-center mb-8">
-            <h1 className="text-4xl font-bold text-white mb-2">Flowa 💫</h1>
+            <h1 className="text-4xl font-bold text-gray-900 mb-2">Flowa 💫</h1>
+            <p className="text-sm text-gray-500">Welcome back</p>
           </div>
 
-          <div className="flex gap-2 mb-6 bg-white/10 rounded-xl p-1">
+          <div className="flex gap-2 mb-6 bg-gray-100 rounded-xl p-1">
             <button
-              onClick={() => setActiveTab("login")}
-              className={`flex-1 py-2 rounded-lg font-medium transition-all ${
-                activeTab === "login"
-                  ? "bg-white text-purple-900 shadow-lg"
-                  : "text-white/70 hover:text-white"
-              }`}
+              className="flex-1 py-2 rounded-lg font-medium transition-all bg-purple-600 text-white shadow-sm"
             >
               Login
             </button>
-            <button
-              onClick={() => setActiveTab("signup")}
-              className={`flex-1 py-2 rounded-lg font-medium transition-all ${
-                activeTab === "signup"
-                  ? "bg-white text-purple-900 shadow-lg"
-                  : "text-white/70 hover:text-white"
-              }`}
-            >
-              Create Account
-            </button>
+            <Link href="/auth/signup" className="flex-1">
+              <button
+                className="w-full py-2 rounded-lg font-medium transition-all text-gray-600 hover:text-gray-900"
+              >
+                Create Account
+              </button>
+            </Link>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <div className="relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-white/50" />
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                 <input
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full pl-10 pr-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder:text-white/50 focus:outline-none focus:ring-2 focus:ring-white/50"
+                  className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
                   placeholder="Email address"
                   required
                 />
@@ -83,12 +76,12 @@ export default function SignInPage() {
 
             <div>
               <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-white/50" />
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                 <input
                   type={showPassword ? "text" : "password"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full pl-10 pr-12 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder:text-white/50 focus:outline-none focus:ring-2 focus:ring-white/50"
+                  className="w-full pl-10 pr-12 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
                   placeholder="Password"
                   required
                 />
@@ -98,16 +91,16 @@ export default function SignInPage() {
                   className="absolute right-3 top-1/2 -translate-y-1/2"
                 >
                   {showPassword ? (
-                    <EyeOff className="w-5 h-5 text-white/50" />
+                    <EyeOff className="w-5 h-5 text-gray-400" />
                   ) : (
-                    <Eye className="w-5 h-5 text-white/50" />
+                    <Eye className="w-5 h-5 text-gray-400" />
                   )}
                 </button>
               </div>
             </div>
 
             {error && (
-              <div className="bg-red-500/20 border border-red-500/50 text-white text-sm p-3 rounded-xl">
+              <div className="bg-red-50 border border-red-200 text-red-600 text-sm p-3 rounded-xl">
                 {error}
               </div>
             )}
@@ -115,28 +108,20 @@ export default function SignInPage() {
             <Button
               type="submit"
               disabled={loading}
-              className="w-full bg-white text-purple-900 hover:bg-white/90 py-6 rounded-xl font-semibold transition-all hover:scale-[1.02] active:scale-[0.98]"
+              className="w-full bg-purple-600 text-white hover:bg-purple-700 py-6 rounded-xl font-semibold transition-all"
             >
-              {loading ? "Signing in..." : "Continue"}
+              {loading ? "Signing in..." : "Sign In"}
             </Button>
-
-            <button
-              type="button"
-              className="w-full bg-white/10 border border-white/20 text-white hover:bg-white/20 py-3 rounded-xl font-medium transition-all hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-2"
-            >
-              <Phone className="w-5 h-5" />
-              Continue with Phone Number
-            </button>
           </form>
 
-          <p className="text-xs text-white/60 text-center mt-6">
+          <p className="text-xs text-gray-500 text-center mt-6">
             By continuing, you agree to our Terms.
           </p>
 
           <div className="mt-6 text-center">
-            <p className="text-sm text-white/80">
+            <p className="text-sm text-gray-600">
               Don't have an account?{" "}
-              <Link href="/auth/signup" className="text-white font-semibold hover:underline">
+              <Link href="/auth/signup" className="text-purple-600 font-semibold hover:underline">
                 Sign up
               </Link>
             </p>

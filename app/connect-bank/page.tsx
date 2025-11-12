@@ -19,8 +19,14 @@ export default function ConnectBankPage() {
   const [scriptLoaded, setScriptLoaded] = useState(false)
 
   useEffect(() => {
-    if (status === "unauthenticated") {
-      router.push("/auth/signin")
+    if (status === "authenticated") {
+      fetch("/api/user/onboarding-status")
+        .then(r => r.json())
+        .then(({ onboardingComplete, bankConnected }) => {
+          if (onboardingComplete && bankConnected) {
+            router.push("/")
+          }
+        })
     }
   }, [status, router])
 
@@ -147,12 +153,7 @@ export default function ConnectBankPage() {
             {loading ? "Connecting..." : !scriptLoaded ? "Loading..." : "Connect Bank Account"}
           </Button>
 
-          <button
-            onClick={() => router.push("/")}
-            className="w-full mt-4 text-white/80 hover:text-white text-sm"
-          >
-            Skip for now
-          </button>
+
         </div>
       </div>
     </main>
