@@ -14,10 +14,12 @@ export async function POST(req: Request) {
     console.log("Update-bank request body:", body)
     console.log("Updating user:", session.user.email, "with account ID:", accountId)
 
+    console.log("Debug: Received accountId in update-bank API:", accountId);
+    
     const client = await clientPromise
     const db = client.db("payverse")
 
-    const updateData = { 
+    const updateData: any = { 
       bankName: bankName || "ALAT by Wema", 
       bankConnected: true, 
       updatedAt: new Date() 
@@ -26,6 +28,7 @@ export async function POST(req: Request) {
     // Only update accountId if it's provided and not undefined
     if (accountId) {
       updateData.monoAccountId = accountId
+      console.log("Debug: Updating monoAccountId in database:", accountId);
     }
     
     const result = await db.collection("users").updateOne(

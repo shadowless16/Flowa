@@ -12,7 +12,7 @@
 
 *   **Live Application:** https://flowa-wema.vercel.app/
 *   **Backend API:** [Link to your live backend API endpoint URL, if separate]
-*   **Recorded Demo:** [Link to your recorded demo explaining how your solution works using Loom].
+*   **Recorded Demo:**: https://www.loom.com/share/c9b1e9292e07422fb3cc9a1f66c1ea7d
 
 
 ---

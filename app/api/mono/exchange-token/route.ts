@@ -22,7 +22,7 @@ export async function POST(req: Request) {
     })
 
     const data = await response.json()
-    console.log("Mono API response:", data)
+    console.log("Debug: Mono API response data:", data)
 
     if (!response.ok) {
       console.error("Mono API error:", data)
@@ -35,7 +35,7 @@ export async function POST(req: Request) {
     // ✅ Extract account ID properly from v2 API
     const accountId = data.data?.id
     if (!accountId) {
-      console.error("No account ID in response:", data)
+      console.error("Debug: No account ID in Mono API response:", data)
       return NextResponse.json({ error: "Invalid response from Mono" }, { status: 500 })
     }
 

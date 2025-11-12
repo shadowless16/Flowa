@@ -68,11 +68,12 @@ export default function ConnectBankPage() {
             const data = await response.json()
 
             if (response.ok) {
-              console.log("Saving account ID:", data.id)
+              console.log("Saving account ID:", data.accountId)
+              console.log("Debug: Saving account ID in frontend:", data.accountId)
               const updateResponse = await fetch("/api/user/update-bank", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ accountId: data.id, bankName: "ALAT by Wema" }),
+                body: JSON.stringify({ accountId: data.accountId, bankName: "ALAT by Wema" }),
               })
               const updateData = await updateResponse.json()
               console.log("Update response:", updateData)
