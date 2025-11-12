@@ -37,17 +37,12 @@ export async function subscribeToPushNotifications() {
 }
 
 export async function showLocalNotification(title: string, body: string) {
-  console.log('🔔 Attempting to show notification...')
-  console.log('Notification in window:', 'Notification' in window)
-  console.log('Permission:', Notification?.permission)
-  
   if (!('Notification' in window)) {
     console.error('❌ Notifications not supported')
     return
   }
   
   if (Notification.permission !== 'granted') {
-    console.warn('⚠️ Permission not granted, requesting...')
     const permission = await Notification.requestPermission()
     if (permission !== 'granted') {
       console.error('❌ Permission denied')
@@ -55,39 +50,19 @@ export async function showLocalNotification(title: string, body: string) {
     }
   }
   
-  // Use direct Notification API (simpler and more reliable)
   try {
-    console.log('🔔 Creating notification with Notification API...')
-    const notification = new Notification(title, {
+    const registration = await navigator.serviceWorker.ready
+    await registration.showNotification(title, {
       body,
       icon: '/icon-192x192.png',
+      badge: '/icon-192x192.png',
       tag: 'payment-notification',
-      requireInteraction: true,
-      silent: false,
+      requireInteraction: false,
+      vibrate: [200, 100, 200],
     })
-    
-    notification.onclick = () => {
-      console.log('👆 Notification clicked')
-      window.focus()
-      notification.close()
-    }
-    
-    notification.onshow = () => {
-      console.log('✅ Notification DISPLAYED on screen')
-    }
-    
-    notification.onerror = (error) => {
-      console.error('❌ Notification display error:', error)
-    }
-    
-    notification.onclose = () => {
-      console.log('🚪 Notification closed')
-    }
-    
-    console.log('✅ Notification object created:', notification)
+    console.log('✅ Notification shown')
   } catch (error) {
-    console.error('❌ Notification creation error:', error)
-    alert(`NOTIFICATION ERROR: ${error}\n\n${title}: ${body}`)
+    console.error('❌ Notification error:', error)
   }
 }
 
