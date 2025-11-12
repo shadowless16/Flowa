@@ -37,13 +37,22 @@ export default function Home() {
     
     if (status === "authenticated") {
       fetch("/api/user/onboarding-status")
-        .then(r => r.json())
-        .then(({ onboardingComplete, bankConnected }) => {
-          if (!onboardingComplete) {
+        .then(r => {
+          if (r.status === 401) {
+            router.push("/auth/signin")
+            return
+          }
+          return r.json()
+        })
+        .then((data) => {
+          if (data && !data.onboardingComplete) {
             router.push("/onboarding")
-          } else if (!bankConnected) {
+          } else if (data && !data.bankConnected) {
             router.push("/connect-bank")
           }
+        })
+        .catch(() => {
+          router.push("/auth/signin")
         })
     }
   }, [status, router])
@@ -186,7 +195,9 @@ export default function Home() {
     return icons[category] || "💸"
   }
 
-  if (status === "loading" || !user || !cards.length || !transactions.length) return null
+  if (status === "loading") return null
+  if (status === "unauthenticated") return null
+  if (!user || !cards.length || !transactions.length) return null
 
   return (
     <main className="min-h-screen bg-gray-50 pb-24">
@@ -201,7 +212,7 @@ export default function Home() {
       {/* Header */}
       <div className="bg-white p-4 flex justify-between items-center">
         <div>
-          <h1 className="text-lg font-semibold text-gray-900">Hi, {user.name.split(" ")[0]} 👋</h1>
+          <h1 className="text-lg font-semibold text-gray-900">Hi, {user.name?.split(" ")[0] || "User"} 👋</h1>
           <p className="text-xs text-gray-500">Welcome back to Flowa</p>
         </div>
         <button onClick={() => router.push('/notifications')} className="relative">

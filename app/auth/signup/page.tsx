@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
+import { signIn } from "next-auth/react"
 import Link from "next/link"
 import { Mail, Lock, Eye, EyeOff, Phone } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -50,7 +51,19 @@ export default function SignUpPage() {
       setError(data.error || "Something went wrong")
       setLoading(false)
     } else {
-      router.push("/onboarding")
+      // Sign in the user after successful registration
+      const result = await signIn("credentials", {
+        email: formData.email,
+        password: formData.password,
+        redirect: false,
+      })
+      
+      if (result?.ok) {
+        router.push("/onboarding")
+      } else {
+        setError("Account created but sign in failed. Please try signing in manually.")
+        setLoading(false)
+      }
     }
   }
 
