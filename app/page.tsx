@@ -169,15 +169,9 @@ export default function Home() {
           <h1 className="text-lg font-semibold text-gray-900">Hi, {user.name.split(" ")[0]} 👋</h1>
           <p className="text-xs text-gray-500">Welcome back to Flowa</p>
         </div>
-        <div className="flex items-center gap-3">
-          <button className="relative">
-            <Bell className="w-5 h-5 text-purple-600" />
-          </button>
-          <Avatar className="w-9 h-9">
-            <AvatarImage src={user.avatar} />
-            <AvatarFallback className="bg-purple-100 text-purple-600 text-xs">{user.name.split(" ").map((n: string) => n[0]).join("")}</AvatarFallback>
-          </Avatar>
-        </div>
+        <button onClick={() => router.push('/notifications')} className="relative">
+          <Bell className="w-5 h-5 text-purple-600" />
+        </button>
       </div>
 
       {/* Balance Card Carousel */}
