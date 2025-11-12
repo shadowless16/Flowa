@@ -361,9 +361,21 @@ export default function Home() {
                 })
 
                 if (response.ok) {
+                  const data = await response.json()
+                  
+                  // Trigger smart notification
+                  if (data.notification) {
+                    const { sendPaymentNotification } = await import("@/lib/smart-notifications")
+                    await sendPaymentNotification(
+                      data.notification.amount,
+                      data.notification.category,
+                      data.notification.description,
+                      data.notification.saved
+                    )
+                  }
+                  
                   setShowPaymentModal(false)
                   setPaymentForm({ amount: "", category: "", description: "" })
-                  // Refresh transactions
                   window.location.reload()
                 } else {
                   alert("Failed to add payment")

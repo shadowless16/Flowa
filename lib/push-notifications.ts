@@ -36,7 +36,15 @@ export async function subscribeToPushNotifications() {
   }
 }
 
-export async function showLocalNotification(title: string, body: string) {
+export async function showLocalNotification(
+  title: string,
+  body: string,
+  options?: {
+    image?: string
+    data?: any
+    actions?: { action: string; title: string }[]
+  }
+) {
   if (!('Notification' in window)) {
     console.error('❌ Notifications not supported')
     return
@@ -56,9 +64,15 @@ export async function showLocalNotification(title: string, body: string) {
       body,
       icon: '/icon-192x192.png',
       badge: '/icon-192x192.png',
-      tag: 'payment-notification',
+      image: options?.image,
+      tag: 'flowa-notification',
       requireInteraction: false,
       vibrate: [200, 100, 200],
+      data: options?.data,
+      actions: options?.actions || [
+        { action: 'view', title: '👀 View Details' },
+        { action: 'close', title: '✕ Dismiss' },
+      ],
     })
     console.log('✅ Notification shown')
   } catch (error) {

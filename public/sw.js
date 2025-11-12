@@ -61,9 +61,28 @@ self.addEventListener('push', (event) => {
 self.addEventListener('notificationclick', (event) => {
   event.notification.close()
   
-  if (event.action === 'view' || !event.action) {
-    event.waitUntil(
-      clients.openWindow(event.notification.data.url)
-    )
+  const urlMap = {
+    'view': '/insights',
+    'view-insights': '/insights',
+    'save-more': '/save',
+    'contribute': '/save',
+    'adjust-budget': '/budget',
   }
+  
+  const url = urlMap[event.action] || event.notification.data?.url || '/'
+  
+  event.waitUntil(
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
+      for (const client of clientList) {
+        if (client.url.includes(self.location.origin) && 'focus' in client) {
+          client.focus()
+          client.navigate(url)
+          return
+        }
+      }
+      if (clients.openWindow) {
+        return clients.openWindow(url)
+      }
+    })
+  )
 })

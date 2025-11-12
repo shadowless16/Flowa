@@ -30,7 +30,13 @@ export async function POST(req: Request) {
     return NextResponse.json({ 
       message: "Payment added successfully",
       id: result.insertedId,
-      payment 
+      payment,
+      notification: {
+        amount: payment.amount,
+        category: payment.category,
+        description: payment.description,
+        saved: payment.saved,
+      }
     })
   } catch (error) {
     console.error("Add payment error:", error)
