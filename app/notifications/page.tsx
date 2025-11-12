@@ -7,6 +7,7 @@ import Link from "next/link"
 import { ArrowLeft, Bell, Sparkles } from "lucide-react"
 import { BottomNav } from "@/components/bottom-nav"
 import { registerServiceWorker, requestNotificationPermission, showLocalNotification } from "@/lib/push-notifications"
+import SimulateTransaction from "@/components/SimulateTransaction"
 
 export default function NotificationsPage() {
   const { status } = useSession()
@@ -78,12 +79,14 @@ export default function NotificationsPage() {
         </div>
       </div>
 
-      <div className="px-4 pt-6">
+      <div className="px-4 pt-6 space-y-4">
+        <SimulateTransaction />
+        
         {notifications.length === 0 ? (
           <div className="bg-white rounded-2xl p-8 text-center">
             <Bell className="w-12 h-12 text-gray-300 mx-auto mb-3" />
             <p className="text-gray-500 text-sm">No notifications yet</p>
-            <p className="text-gray-400 text-xs mt-1">Simulate a payment to see AI-powered insights</p>
+            <p className="text-gray-400 text-xs mt-1">Use the simulator above to test Mono notifications</p>
           </div>
         ) : (
           <div className="space-y-3">

@@ -25,8 +25,9 @@ export default function InsightsPage() {
         fetch("/api/payments").then((r) => r.json())
       ])
         .then(([monoData, paymentsData]) => {
-          console.log("📊 Data source:", monoData.source || "unknown")
-          const monoTx = monoData.data || []
+          console.log("📊 Mono data:", monoData)
+          console.log("📊 Payments data:", paymentsData)
+          const monoTx = Array.isArray(monoData) ? monoData : []
           const manualTx = Array.isArray(paymentsData) ? paymentsData : []
           
           // Combine all transactions

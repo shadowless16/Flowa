@@ -19,6 +19,7 @@ export default function ProfilePage() {
   const router = useRouter()
   const { toast } = useToast()
   const [data, setData] = useState<any>(null)
+  const [goals, setGoals] = useState<any>(null)
   const [editOpen, setEditOpen] = useState(false)
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [notifOpen, setNotifOpen] = useState(false)
@@ -31,6 +32,7 @@ export default function ProfilePage() {
     if (status === "authenticated") {
       fetch("/api/profile").then((r) => r.json()).then(setData)
       fetch("/api/profile/settings").then((r) => r.json()).then(setSettings)
+      fetch("/api/goals").then((r) => r.json()).then(setGoals)
     }
   }, [status, router])
 
@@ -97,9 +99,12 @@ export default function ProfilePage() {
     await signOut({ callbackUrl: "/auth/signin" })
   }
 
-  if (status === "loading" || !data || !settings) return null
+  if (status === "loading" || !data || !settings || !goals) return null
 
   const { user, stats } = data
+  const activeGoals = goals.goals?.filter((g: any) => g.currentAmount < g.targetAmount) || []
+  const completedGoals = goals.goals?.filter((g: any) => g.currentAmount >= g.targetAmount) || []
+  const totalGoalsSaved = goals.goals?.reduce((sum: number, g: any) => sum + g.currentAmount, 0) || 0
   return (
     <main className="min-h-screen bg-gray-50 pb-24">
       {/* Header */}
@@ -129,16 +134,16 @@ export default function ProfilePage() {
           </div>
           <div className="grid grid-cols-3 gap-4">
             <div>
-              <p className="text-2xl font-bold">₦{(stats.totalSaved / 1000).toFixed(0)}k</p>
+              <p className="text-2xl font-bold">₦{((stats.totalSaved + totalGoalsSaved) / 1000).toFixed(0)}k</p>
               <p className="text-white/70 text-xs">Total Saved</p>
             </div>
             <div>
-              <p className="text-2xl font-bold">{stats.goals}</p>
-              <p className="text-white/70 text-xs">Goals</p>
+              <p className="text-2xl font-bold">{activeGoals.length}</p>
+              <p className="text-white/70 text-xs">Active Goals</p>
             </div>
             <div>
-              <p className="text-2xl font-bold">{stats.successRate}%</p>
-              <p className="text-white/70 text-xs">Success Rate</p>
+              <p className="text-2xl font-bold">{completedGoals.length}</p>
+              <p className="text-white/70 text-xs">Completed</p>
             </div>
           </div>
         </div>

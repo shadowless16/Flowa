@@ -5,6 +5,9 @@ import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
 import { ArrowLeft } from "lucide-react"
 import { Bar } from "react-chartjs-2"
+import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend } from "chart.js"
+
+ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend)
 
 function CategoryDetailContent() {
   const router = useRouter()
@@ -21,15 +24,15 @@ function CategoryDetailContent() {
       fetch("/api/payments").then((r) => r.json())
     ])
       .then(([monoData, paymentsData]) => {
-        const monoTx = monoData.data || []
+        const monoTx = Array.isArray(monoData) ? monoData : []
         const manualTx = Array.isArray(paymentsData) ? paymentsData : []
         
         const allTx = [
-          ...monoTx.map((t: any) => ({
-            amount: Math.abs(t.amount),
+          ...monoTx.filter(t => t.type === "debit").map((t: any) => ({
+            amount: Math.abs(t.amount), // Already converted to naira
             category: t.category || "Other",
             date: new Date(t.date),
-            description: t.narration
+            description: t.narration || `Transfer ${Math.abs(t.amount).toLocaleString()}`
           })),
           ...manualTx.map((t: any) => ({
             amount: t.amount,

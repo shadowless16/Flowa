@@ -69,11 +69,14 @@ export default function Home() {
         fetch("/api/mono/transactions").then((r) => r.json())
       ])
         .then(([balance, txData]) => {
-          console.log("Balance:", balance)
-          console.log("Transactions:", txData)
+          console.log("🔍 Balance API Response:", balance)
+          console.log("🔍 Transactions API Response:", txData)
+          console.log("🔍 Balance check:", balance.balance !== undefined)
+          console.log("🔍 TxData check:", Array.isArray(txData))
           
-          if (balance.balance !== undefined && txData.data) {
-            const transactions = txData.data || []
+          if (balance.balance !== undefined && balance.balance !== null && Array.isArray(txData)) {
+            console.log("✅ Using real Mono data for cards")
+            const transactions = txData || []
             const spending = transactions
               .filter((t: any) => t.type === "debit")
               .reduce((sum: number, t: any) => sum + Math.abs(t.amount), 0)
@@ -81,37 +84,46 @@ export default function Home() {
               .filter((t: any) => t.type === "credit")
               .reduce((sum: number, t: any) => sum + Math.abs(t.amount), 0)
             
-            const totalBalance = balance.balance
-            const savings = Math.floor(spending * 0.1) // 10% of spending goes to savings
+            const totalBalance = Math.round(balance.balance)
+            const savings = Math.round(spending * 0.1) // 10% of spending goes to savings
+            
+            console.log("💰 Calculated values:", { totalBalance, spending, income, savings })
+            
+            // Use income - spending for available cash if balance is 0 or unreliable
+            const availableCash = totalBalance > 0 ? totalBalance : Math.max(0, income - spending)
             
             setCards([
               {
                 id: 1,
                 title: "Total Balance",
-                amount: totalBalance,
+                amount: totalBalance > 0 ? totalBalance : Math.round(income - spending),
                 icon: "CreditCard",
                 stats: [
-                  { label: "Spending", value: spending },
+                  { label: "Spending", value: Math.round(spending) },
                   { label: "Savings", value: savings },
                 ],
               },
               {
                 id: 2,
                 title: "Available Cash",
-                amount: totalBalance - spending,
+                amount: Math.round(availableCash),
                 icon: "Wallet",
                 stats: [
-                  { label: "Income", value: income },
-                  { label: "Expenses", value: spending },
+                  { label: "Income", value: Math.round(income) },
+                  { label: "Expenses", value: Math.round(spending) },
                 ],
               },
             ])
           } else {
+            console.log("📦 Using mock cards - condition not met")
+            console.log("Balance has balance:", balance.balance !== undefined)
+            console.log("TxData is array:", Array.isArray(txData))
             fetch("/api/cards").then((r) => r.json()).then(setCards)
           }
         })
         .catch((err) => {
-          console.error("Error fetching Mono data:", err)
+          console.error("❌ Error fetching Mono data:", err)
+          console.log("📦 Falling back to mock cards")
           fetch("/api/cards").then((r) => r.json()).then(setCards)
         })
     }
@@ -125,12 +137,12 @@ export default function Home() {
         fetch("/api/payments").then((r) => r.json())
       ])
         .then(([monoData, paymentsData]) => {
-          const monoTransactions = monoData.data ? monoData.data.map((t: any) => ({
+          const monoTransactions = Array.isArray(monoData) ? monoData.map((t: any) => ({
             id: t._id,
             name: t.narration,
             category: t.category || "Other",
-            amount: Math.abs(t.amount),
-            saved: Math.floor(Math.abs(t.amount) * 0.1),
+            amount: Math.round(Math.abs(t.amount)), // Already converted to naira
+            saved: Math.round(Math.abs(t.amount) * 0.1),
             time: new Date(t.date).toLocaleDateString(),
             icon: t.type === "credit" ? "💰" : "💸",
             bgColor: t.type === "credit" ? "bg-green-50" : "bg-red-50",

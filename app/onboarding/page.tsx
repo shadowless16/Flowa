@@ -5,6 +5,10 @@ import { useRouter } from "next/navigation"
 import { useSession } from "next-auth/react"
 import useEmblaCarousel from "embla-carousel-react"
 import { Button } from "@/components/ui/button"
+import { Card } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
+import { Input } from "@/components/ui/input"
+import { Plus, Check } from "lucide-react"
 
 const slides = [
   {
@@ -22,6 +26,20 @@ const slides = [
     title: "Stay in control of your spending",
     description: "Get insights and analytics to make better financial decisions",
   },
+  {
+    emoji: "📊",
+    title: "What do you spend on daily?",
+    description: "Select categories you commonly spend on. This helps us categorize your transactions quickly.",
+    isCategories: true,
+  },
+]
+
+const defaultCategories = [
+  { id: "food", name: "Food & Dining", emoji: "🍽️" },
+  { id: "transport", name: "Transportation", emoji: "🚗" },
+  { id: "bills", name: "Bills & Utilities", emoji: "💡" },
+  { id: "shopping", name: "Shopping", emoji: "🛍️" },
+  { id: "entertainment", name: "Entertainment", emoji: "🎬" },
 ]
 
 export default function OnboardingPage() {
@@ -29,6 +47,9 @@ export default function OnboardingPage() {
   const { status } = useSession()
   const [emblaRef, emblaApi] = useEmblaCarousel({ loop: false })
   const [currentSlide, setCurrentSlide] = useState(0)
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([])
+  const [customCategory, setCustomCategory] = useState("")
+  const [customCategories, setCustomCategories] = useState<string[]>([])
 
   useEffect(() => {
     if (status === "authenticated") {
@@ -55,7 +76,12 @@ export default function OnboardingPage() {
     if (currentSlide < slides.length - 1) {
       emblaApi?.scrollNext()
     } else {
-      await fetch("/api/user/complete-onboarding", { method: "POST" })
+      const allCategories = [...selectedCategories, ...customCategories]
+      await fetch("/api/user/complete-onboarding", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ preferredCategories: allCategories })
+      })
       router.push("/connect-bank")
     }
   }
@@ -63,6 +89,25 @@ export default function OnboardingPage() {
   const handleSkip = async () => {
     await fetch("/api/user/complete-onboarding", { method: "POST" })
     router.push("/connect-bank")
+  }
+
+  const toggleCategory = (categoryId: string) => {
+    setSelectedCategories(prev => 
+      prev.includes(categoryId) 
+        ? prev.filter(id => id !== categoryId)
+        : [...prev, categoryId]
+    )
+  }
+
+  const addCustomCategory = () => {
+    if (customCategory.trim() && !customCategories.includes(customCategory.trim())) {
+      setCustomCategories(prev => [...prev, customCategory.trim()])
+      setCustomCategory("")
+    }
+  }
+
+  const removeCustomCategory = (category: string) => {
+    setCustomCategories(prev => prev.filter(c => c !== category))
   }
 
   return (
@@ -79,11 +124,80 @@ export default function OnboardingPage() {
             <div className="flex">
               {slides.map((slide, index) => (
                 <div key={index} className="flex-[0_0_100%] min-w-0">
-                  <div className="flex flex-col items-center text-center">
-                    <div className="text-8xl mb-8">{slide.emoji}</div>
-                    <h2 className="text-3xl font-bold text-gray-900 mb-4">{slide.title}</h2>
-                    <p className="text-gray-600 text-lg">{slide.description}</p>
-                  </div>
+                  {slide.isCategories ? (
+                    <div className="flex flex-col">
+                      <div className="text-center mb-6">
+                        <div className="text-6xl mb-4">{slide.emoji}</div>
+                        <h2 className="text-2xl font-bold text-gray-900 mb-2">{slide.title}</h2>
+                        <p className="text-gray-600">{slide.description}</p>
+                      </div>
+                      
+                      <div className="space-y-4">
+                        <div className="grid grid-cols-1 gap-3">
+                          {defaultCategories.map((category) => (
+                            <Card 
+                              key={category.id}
+                              className={`p-4 cursor-pointer transition-all ${
+                                selectedCategories.includes(category.id) 
+                                  ? "border-purple-500 bg-purple-50" 
+                                  : "border-gray-200 hover:border-gray-300"
+                              }`}
+                              onClick={() => toggleCategory(category.id)}
+                            >
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-3">
+                                  <span className="text-2xl">{category.emoji}</span>
+                                  <span className="font-medium">{category.name}</span>
+                                </div>
+                                {selectedCategories.includes(category.id) && (
+                                  <Check className="w-5 h-5 text-purple-600" />
+                                )}
+                              </div>
+                            </Card>
+                          ))}
+                        </div>
+                        
+                        <div className="space-y-3">
+                          <div className="flex gap-2">
+                            <Input
+                              placeholder="Add custom category..."
+                              value={customCategory}
+                              onChange={(e) => setCustomCategory(e.target.value)}
+                              onKeyPress={(e) => e.key === 'Enter' && addCustomCategory()}
+                            />
+                            <Button 
+                              onClick={addCustomCategory}
+                              variant="outline"
+                              size="icon"
+                            >
+                              <Plus className="w-4 h-4" />
+                            </Button>
+                          </div>
+                          
+                          {customCategories.length > 0 && (
+                            <div className="flex flex-wrap gap-2">
+                              {customCategories.map((category) => (
+                                <Badge 
+                                  key={category}
+                                  variant="secondary"
+                                  className="cursor-pointer"
+                                  onClick={() => removeCustomCategory(category)}
+                                >
+                                  {category} ×
+                                </Badge>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex flex-col items-center text-center">
+                      <div className="text-8xl mb-8">{slide.emoji}</div>
+                      <h2 className="text-3xl font-bold text-gray-900 mb-4">{slide.title}</h2>
+                      <p className="text-gray-600 text-lg">{slide.description}</p>
+                    </div>
+                  )}
                 </div>
               ))}
             </div>

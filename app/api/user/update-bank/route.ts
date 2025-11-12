@@ -9,15 +9,28 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const { accountId, bankName } = await req.json()
+    const body = await req.json()
+    const { accountId, bankName } = body
+    console.log("Update-bank request body:", body)
     console.log("Updating user:", session.user.email, "with account ID:", accountId)
 
     const client = await clientPromise
     const db = client.db("payverse")
 
+    const updateData = { 
+      bankName: bankName || "ALAT by Wema", 
+      bankConnected: true, 
+      updatedAt: new Date() 
+    }
+    
+    // Only update accountId if it's provided and not undefined
+    if (accountId) {
+      updateData.monoAccountId = accountId
+    }
+    
     const result = await db.collection("users").updateOne(
       { email: session.user.email },
-      { $set: { monoAccountId: accountId, bankName: bankName || "ALAT by Wema", bankConnected: true, updatedAt: new Date() } }
+      { $set: updateData }
     )
     
     console.log("Update result:", result.modifiedCount, "documents modified")

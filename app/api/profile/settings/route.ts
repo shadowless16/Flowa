@@ -22,7 +22,7 @@ export async function GET() {
       connectedAccounts.push({
         provider: "Mono",
         accountId: user.monoAccountId,
-        bank: user.bankName || "ALAT by Wema",
+        bank: user.bankName || "Unknown Bank",
         connected: true,
       })
     }

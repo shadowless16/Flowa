@@ -1,4 +1,4 @@
-const GEMINI_API_KEY = process.env.NEXT_PUBLIC_GEMINI_API_KEY
+const GEMINI_API_KEY = process.env.NEXT_PUBLIC_GEMINI_API_KEY || process.env.GEMINI_API_KEY
 
 export async function generateSmartReaction(amount: number, category: string, description: string): Promise<string> {
   if (!GEMINI_API_KEY) {
@@ -6,14 +6,14 @@ export async function generateSmartReaction(amount: number, category: string, de
   }
 
   try {
-    const prompt = `You are Flowa, a friendly financial AI assistant. Generate a short, encouraging smart reaction (1 sentence max) for this transaction:
-    - Amount: ₦${amount}
+    const prompt = `You are Flowa, a smart financial AI assistant. Analyze this transaction and give honest feedback (1 sentence max):
+    - Amount: ₦${amount.toLocaleString()}
     - Category: ${category}
     - Description: ${description}
     
-    Make it motivational, relevant to the category, and mention savings if applicable. Keep it under 15 words.`
+    If the amount seems excessive for the category, express concern and suggest budgeting. If reasonable, be encouraging. Be honest and helpful. Keep it under 15 words.`
 
-    const response = await fetch("https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent", {
+    const response = await fetch("https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

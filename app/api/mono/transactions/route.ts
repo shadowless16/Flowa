@@ -10,88 +10,84 @@ export async function GET(req: Request) {
     }
 
     const client = await clientPromise
-    const db = client.db("payverse")
-    
+    const db = client.db()
     const user = await db.collection("users").findOne({ email: session.user.email })
     
     if (!user?.monoAccountId) {
       return NextResponse.json({ error: "No bank account connected" }, { status: 400 })
     }
 
-    const response = await fetch(`https://api.withmono.com/v1/accounts/${user.monoAccountId}/transactions`, {
+    // Get last 3 months of transactions in dd-mm-yyyy format
+    const formatDate = (date: Date) => {
+      const day = String(date.getDate()).padStart(2, '0')
+      const month = String(date.getMonth() + 1).padStart(2, '0')
+      const year = date.getFullYear()
+      return `${day}-${month}-${year}`
+    }
+    
+    const endDate = formatDate(new Date())
+    const startDate = formatDate(new Date(Date.now() - 90 * 24 * 60 * 60 * 1000))
+    
+    const response = await fetch(`https://api.withmono.com/v2/accounts/${user.monoAccountId}/transactions?start=${startDate}&end=${endDate}`, {
       headers: {
         "mono-sec-key": process.env.MONO_SECRET_KEY!,
       },
     })
 
     const data = await response.json()
-    console.log("Mono transactions response:", JSON.stringify(data, null, 2))
-    
-    if (response.ok && data.data && Array.isArray(data.data)) {
-      console.log("✅ Using REAL Mono transaction data:", data.data.length, "transactions")
-      return NextResponse.json({ ...data, source: "mono" })
+
+    if (!response.ok) {
+      console.error("Mono transactions error:", data)
+      return NextResponse.json({ error: data.message || "Failed to fetch transactions" }, { status: response.status })
     }
-    
-    // If Mono API fails or returns no data, use mock data
-    console.log("⚠️ Mono API failed or no data, using mock data")
-    try {
-      console.log("⚠️ Mono sandbox mode - using mock data")
+
+    // Smart category detection function
+    const detectCategory = (narration: string, amount: number, index: number) => {
+      const desc = narration.toLowerCase()
       
-      // Check if mock transactions already exist for this user
-      const existingMockTxns = await db.collection("mockTransactions").findOne({ userEmail: session.user.email })
-      
-      if (existingMockTxns) {
-        console.log("📦 Using stored mock transactions")
-        return NextResponse.json({ data: existingMockTxns.transactions, source: "mock" })
+      // First check for specific keywords
+      if (desc.includes('uber') || desc.includes('bolt') || desc.includes('taxi') || desc.includes('fuel') || desc.includes('petrol')) {
+        return 'Transportation'
+      }
+      if (desc.includes('food') || desc.includes('restaurant') || desc.includes('pizza') || desc.includes('kfc') || desc.includes('dominos')) {
+        return 'Food & Dining'
+      }
+      if (desc.includes('shop') || desc.includes('store') || desc.includes('market') || desc.includes('jumia') || desc.includes('konga')) {
+        return 'Shopping'
+      }
+      if (desc.includes('netflix') || desc.includes('spotify') || desc.includes('cinema') || desc.includes('movie')) {
+        return 'Entertainment'
+      }
+      if (desc.includes('electric') || desc.includes('water') || desc.includes('bill') || desc.includes('airtime') || desc.includes('data')) {
+        return 'Bills'
       }
       
-      // Generate mock transactions ONCE and store them
-      console.log("🔨 Generating new mock transactions")
-      const mockTransactions = []
-      const categories = ["Food & Dining", "Shopping", "Entertainment", "Transportation", "Bills"]
-      const narrations = [
-        ["Restaurant", "Fast Food", "Grocery Store", "Coffee Shop", "Bakery"],
-        ["Online Shopping", "Clothing Store", "Electronics", "Pharmacy", "Bookstore"],
-        ["Cinema", "Streaming Service", "Concert", "Gaming", "Sports Event"],
-        ["Uber", "Fuel Station", "Parking", "Bus Fare", "Car Maintenance"],
-        ["Electricity", "Internet", "Phone Bill", "Water Bill", "Rent"]
-      ]
-      
-      // Generate transactions for last 8 weeks
-      for (let week = 0; week < 8; week++) {
-        for (let i = 0; i < 5; i++) {
-          const catIndex = Math.floor(Math.random() * categories.length)
-          const daysAgo = week * 7 + Math.floor(Math.random() * 7)
-          mockTransactions.push({
-            _id: `${week}-${i}`,
-            amount: Math.floor(Math.random() * 50000) + 5000,
-            type: "debit",
-            narration: narrations[catIndex][Math.floor(Math.random() * narrations[catIndex].length)],
-            date: new Date(Date.now() - daysAgo * 86400000).toISOString(),
-            category: categories[catIndex],
-          })
-        }
+      // For generic transfers, distribute across categories based on amount and pattern
+      if (desc.includes('transfer') || desc.includes('nip/')) {
+        const categories = ['Food & Dining', 'Transportation', 'Shopping', 'Entertainment', 'Bills']
+        
+        // Use amount and index to create realistic distribution
+        if (amount < 5000) return 'Food & Dining'  // Small amounts = food
+        if (amount < 15000) return 'Transportation' // Medium amounts = transport
+        if (amount < 30000) return 'Shopping'      // Larger amounts = shopping
+        if (amount < 50000) return 'Entertainment' // High amounts = entertainment
+        return 'Bills' // Very high amounts = bills
       }
       
-      // Add some income transactions
-      mockTransactions.push({
-        _id: "income-1",
-        amount: 250000,
-        type: "credit",
-        narration: "Salary Payment",
-        date: new Date(Date.now() - 5 * 86400000).toISOString(),
-        category: "income",
-      })
-      
-      // Store mock transactions in database
-      await db.collection("mockTransactions").insertOne({
-        userEmail: session.user.email,
-        transactions: mockTransactions,
-        createdAt: new Date(),
-      })
-      
-      return NextResponse.json({ data: mockTransactions, source: "mock" })
+      return 'Other'
     }
+    
+    // Convert amounts from kobo to naira and add smart categories
+    const transactions = data.data.map((t: any, index: number) => {
+      const convertedAmount = t.amount / 100
+      return {
+        ...t,
+        amount: convertedAmount,
+        category: detectCategory(t.narration || '', convertedAmount, index)
+      }
+    })
+    
+    return NextResponse.json(transactions)
   } catch (error) {
     console.error("Transaction fetch error:", error)
     return NextResponse.json({ error: "Failed to fetch transactions" }, { status: 500 })
