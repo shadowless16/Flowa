@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import bcrypt from "bcryptjs"
 import clientPromise from "@/lib/db/mongodb"
+import { signIn } from "@/auth"
 
 export async function POST(req: Request) {
   try {
@@ -23,6 +24,13 @@ export async function POST(req: Request) {
       password: hashedPassword,
       onboardingComplete: false,
       createdAt: new Date(),
+    })
+
+    // Auto sign in after successful signup
+    await signIn("credentials", {
+      email,
+      password,
+      redirect: false,
     })
 
     return NextResponse.json({ message: "User created successfully" })
