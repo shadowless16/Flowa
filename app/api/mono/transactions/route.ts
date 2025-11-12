@@ -24,14 +24,17 @@ export async function GET(req: Request) {
       },
     })
 
-    const responseText = await response.text()
+    const data = await response.json()
+    console.log("Mono transactions response:", JSON.stringify(data, null, 2))
     
-    let data
-    try {
-      data = JSON.parse(responseText)
-      console.log("✅ Using REAL Mono transaction data")
+    if (response.ok && data.data && Array.isArray(data.data)) {
+      console.log("✅ Using REAL Mono transaction data:", data.data.length, "transactions")
       return NextResponse.json({ ...data, source: "mono" })
-    } catch (e) {
+    }
+    
+    // If Mono API fails or returns no data, use mock data
+    console.log("⚠️ Mono API failed or no data, using mock data")
+    try {
       console.log("⚠️ Mono sandbox mode - using mock data")
       
       // Check if mock transactions already exist for this user

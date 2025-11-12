@@ -34,26 +34,24 @@ export async function GET(req: Request) {
       },
     })
 
-    if (!response.ok) {
-      console.error("Mono API error:", response.status)
-      return NextResponse.json({
-        balance: 100000,
-        currency: "NGN",
-        accountNumber: "0123456789",
-        accountName: session.user.name || "User",
-        bankName: user.bankName || "Test Bank",
-      })
+    const data = await response.json()
+    console.log("Mono API response:", JSON.stringify(data, null, 2))
+    
+    if (!response.ok || data.status === "failed") {
+      console.error("Mono API error:", data)
+      throw new Error(data.message || "Failed to fetch from Mono")
     }
 
-    const data = await response.json()
-    console.log("Mono balance data:", data)
+    // Mono API returns: { account: { balance, currency, account_number, name }, institution: { name } }
+    const account = data.account || data
+    const institution = data.institution || {}
     
     return NextResponse.json({
-      balance: data.account?.balance || data.balance || 100000,
-      currency: data.account?.currency || data.currency || "NGN",
-      accountNumber: data.account?.account_number || data.accountNumber || "0123456789",
-      accountName: data.account?.name || session.user.name || "User",
-      bankName: data.institution?.name || user.bankName || "Test Bank",
+      balance: account.balance || 0,
+      currency: account.currency || "NGN",
+      accountNumber: account.account_number || account.accountNumber || "N/A",
+      accountName: account.name || session.user.name || "User",
+      bankName: institution.name || user.bankName || "Bank",
     })
   } catch (error) {
     console.error("Balance fetch error:", error)
