@@ -7,6 +7,7 @@ import { Bell, CreditCard, Plus, Receipt, TrendingUp, Wallet } from "lucide-reac
 import useEmblaCarousel from "embla-carousel-react"
 import { BottomNav } from "@/components/bottom-nav"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import NotificationBanner from "./notification-banner"
 
 const iconMap: any = { CreditCard, Wallet }
 
@@ -26,6 +27,7 @@ export default function Home() {
     description: "",
   })
   const [visibleTransactions, setVisibleTransactions] = useState(6)
+  const [notificationBanner, setNotificationBanner] = useState<any>(null)
 
   useEffect(() => {
     if (status === "unauthenticated") {
@@ -176,6 +178,14 @@ export default function Home() {
 
   return (
     <main className="min-h-screen bg-gray-50 pb-24">
+      {notificationBanner && (
+        <NotificationBanner
+          title={notificationBanner.title}
+          message={notificationBanner.message}
+          emoji={notificationBanner.emoji}
+          onClose={() => setNotificationBanner(null)}
+        />
+      )}
       {/* Header */}
       <div className="bg-white p-4 flex justify-between items-center">
         <div>
@@ -363,7 +373,27 @@ export default function Home() {
                 if (response.ok) {
                   const data = await response.json()
                   
-                  // Trigger smart notification
+                  setShowPaymentModal(false)
+                  setPaymentForm({ amount: "", category: "", description: "" })
+                  
+                  // Show in-app banner
+                  const categoryEmojis: any = {
+                    "Food & Dining": "🍕",
+                    "Transportation": "🚗",
+                    "Shopping": "🛒",
+                    "Entertainment": "🎬",
+                    "Bills": "💳",
+                    "Other": "💰",
+                  }
+                  const emoji = categoryEmojis[data.notification.category] || "💸"
+                  
+                  setNotificationBanner({
+                    title: `₦${data.notification.amount.toLocaleString()} - ${data.notification.category}`,
+                    message: `${data.notification.description}\n\n✨ +₦${data.notification.saved.toLocaleString()} saved automatically!`,
+                    emoji,
+                  })
+                  
+                  // Also trigger push notification
                   if (data.notification) {
                     const { sendPaymentNotification } = await import("@/lib/smart-notifications")
                     await sendPaymentNotification(
@@ -374,9 +404,7 @@ export default function Home() {
                     )
                   }
                   
-                  setShowPaymentModal(false)
-                  setPaymentForm({ amount: "", category: "", description: "" })
-                  window.location.reload()
+                  setTimeout(() => window.location.reload(), 2000)
                 } else {
                   alert("Failed to add payment")
                 }

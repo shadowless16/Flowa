@@ -34,25 +34,27 @@ export async function GET(req: Request) {
       },
     })
 
-    const responseText = await response.text()
-    
-    let data
-    try {
-      data = JSON.parse(responseText)
-    } catch (e) {
-      // Sandbox mode - return mock balance data with random variation
-      const baseBalance = 245680
-      const variation = Math.floor(Math.random() * 50000) - 25000
+    if (!response.ok) {
+      console.error("Mono API error:", response.status)
       return NextResponse.json({
-        balance: baseBalance + variation,
+        balance: 100000,
         currency: "NGN",
         accountNumber: "0123456789",
         accountName: session.user.name || "User",
-        bankName: "Test Bank",
+        bankName: user.bankName || "Test Bank",
       })
     }
 
-    return NextResponse.json(data)
+    const data = await response.json()
+    console.log("Mono balance data:", data)
+    
+    return NextResponse.json({
+      balance: data.account?.balance || data.balance || 100000,
+      currency: data.account?.currency || data.currency || "NGN",
+      accountNumber: data.account?.account_number || data.accountNumber || "0123456789",
+      accountName: data.account?.name || session.user.name || "User",
+      bankName: data.institution?.name || user.bankName || "Test Bank",
+    })
   } catch (error) {
     console.error("Balance fetch error:", error)
     return NextResponse.json({ error: "Failed to fetch balance" }, { status: 500 })
